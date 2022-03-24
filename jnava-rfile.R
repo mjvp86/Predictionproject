@@ -70,10 +70,8 @@ View(pan)
 
 pancreatitis.decoded <- pan
 
-t3 <- tableby( ~ ., data = pct)
-summary(t3)
+t3 <- tableby( ~ ., data = pan)
 summary(t3, text = TRUE, title = "Descriptive Statistics on Pancreatitis")
 
-t4 <- tableby( outcome ~ ., data = pct) ## data per outcome
-summary(t4)
+t4 <- tableby( outcome ~ ., data = pan) ## data per outcome
 summary(t4, text = TRUE, title = "Descriptive Statistics on Pancreatitis")
