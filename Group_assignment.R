@@ -11,6 +11,74 @@ pathToData <- '.' #this means "the same folder as where my markdown script is"
 pancreatitis <- read.csv( file.path(pathToData,'pancreatitis.csv') )
 summary(pancreatitis)
 
+# Model 1: with all chosen variables
+model_p1 <-  glm(outcome ~ rx + age + gender + amp +
+                   pep + train+ chole + difcan + recpanc + sod+ pdstent,
+                 family = binomial, data = pancreatitis)
+model_p1
+
+model_rms_p1 <- lrm(data = pancreatitis, outcome ~ rx + age + gender + amp +
+                      pep + train+ chole + difcan + recpanc + sod+ pdstent,
+                    x = TRUE, y = TRUE)
+
+model_rms_p1
+
+# Model 2 pdstent = excluded
+model_p2 <-  glm(outcome ~ rx + age + gender + amp +
+                   pep + train+ chole + difcan + recpanc + sod,
+                 family = binomial, data = pancreatitis)
+model_p2
+
+model_rms_p2 <- lrm(data = pancreatitis, outcome ~ rx + age + gender + amp +
+                      pep + train+ chole + difcan + sod,
+                    x = TRUE, y = TRUE)
+
+model_rms_p2
+
+# Model 3 recpanc = excluded
+model_p3 <-  glm(outcome ~ rx + age + gender + amp +
+                   pep + train+ chole + difcan +  sod,
+                 family = binomial, data = pancreatitis)
+model_p3
+
+model_rms_p3 <- lrm(data = pancreatitis, outcome ~ rx + age + gender + amp +
+                      pep + train+ chole + difcan +  sod,
+                    x = TRUE, y = TRUE)
+
+model_rms_p3
+
+# Final model, gender = excluded
+model_pf <-  glm(outcome ~ rx + age +  amp +
+                   pep + train+ chole + difcan + recpanc + sod,
+                 family = binomial, data = pancreatitis)
+
+model_pf
+
+model_rms_pf <- lrm(data = pancreatitis, outcome ~ rx + age +  amp +
+                      pep + train+ chole + difcan  + sod,
+                    x = TRUE, y = TRUE)
+model_rms_pf
+
+## ROC curve
+library(pROC) # library for ROC curve
+p <- predict(model_rms_pf, type = "fitted") # prediction factor
+
+ROC <- roc(pancreatitis$outcome, p, ci = TRUE)
+ROC # for AUC value
+plot(ROC)
+
+# Validation with bootstrapping = 200
+validation_rms <- validate(model_rms_pf, method= "boot", B=200)
+validation_rms
+
+plot(validation_rms, B=200)
+
+library(rms)
+
+# Calibration of the model
+cal <- calibrate(model_rms_pf, B = 200)
+plot(cal)
+
 ## Renaming of data 
 recoded_pancreatitis <- dplyr::rename(pancreatitis,
                                       fac_study_site = site,
