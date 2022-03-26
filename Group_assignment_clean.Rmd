@@ -1,0 +1,183 @@
+---
+title: "Group_assignment_clean"
+author: "Tom Kugener"
+date: "3/26/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Complete R code
+## Before getting started
+```{r, warning=FALSE, message=FALSE}
+# Install and load necessary packages 
+source("Functions.R")
+list.of.packages <- c("haven", "dplyr", "reshape","reshape2", "magrittr", "httr","kableExtra", "ggplot2", "GGally", "epiDisplay", "tidyverse", "caret", "leaps", "arsenal", "skimr") 
+installRequiredPackages(list.of.packages)
+
+# Import Data
+pathToData <- '.' 
+pancreatitis <- read.csv( file.path(pathToData,'pancreatitis.csv') )
+```
+
+
+## Recoding & Descriptive statistics 
+```{r}
+# To allow summary statistics to work, the level of measurement of the variables will be defined
+recoded_pancreatitis <- dplyr::mutate(pancreatitis,
+                                      site = as.factor(site),
+                                      age = as.numeric(age),
+                                      risk = as.numeric(risk),
+                                      gender = as.factor(gender),
+                                      outcome = as.factor(outcome),
+                                      sod = as.factor(sod),
+                                      pep = as.factor(pep),
+                                      recpanc = as.factor(recpanc) ,
+                                      psphinc = as.factor(psphinc),
+                                      precut = as.factor(precut),
+                                      difcan = as.factor(difcan), 
+                                      pneudil = as.factor(pneudil),
+                                      amp = as.factor(amp),
+                                      paninj = as.factor(paninj),
+                                      acinar = as.factor(acinar),
+                                      brush = as.factor(brush),
+                                      asa81 = as.factor(asa81),
+                                      asa325 = as.factor(asa325),
+                                      asa = as.factor(asa),
+                                      prophystent = as.factor(prophystent), 
+                                      therastent = as.factor(therastent),  
+                                      pdstent = as.factor(pdstent),       
+                                      sodsom = as.factor(sodsom),
+                                      bsphinc = as.factor(bsphinc),
+                                      bstent = as.factor(bstent), 
+                                      chole = as.factor(chole),
+                                      pbmal = as.factor(pbmal),
+                                      train = as.factor(train), 
+                                      status = as.factor(status),
+                                      type = as.factor(type),
+                                      rx = as.factor(rx),
+                                      bleed = as.factor(bleed)      
+                                      )
+
+summary(recoded_pancreatitis, text = TRUE, title = "Descriptive Statistics on Pancreatitis")
+library(arsenal) 
+require(knitr)
+require(survival)
+t3 <- tableby(~ ., data = recoded_pancreatitis)
+summary(t3, text = TRUE, title = "Descriptive Statistics on Pancreatitis")
+summary(recoded_pancreatitis)
+skim(recoded_pancreatitis)
+```
+
+
+
+# Selection of candidate variables
+Based on established literature, and considering the  practical availability of certain variables, a subset of the variables was chosen as candidate predictors
+```{r}
+subset_pancreatitis <- pancreatitis[,names(pancreatitis) %in% c("rx", "age", "gender", "amp", "pep", "train", "chole", "difcan", "recpanc", "sod", "pdstent")]
+
+subset_recoded_pancreatitis <- recoded_pancreatitis[,names(recoded_pancreatitis) %in% c("rx", "age", "gender", "amp", "pep", "train", "chole", "difcan", "recpanc", "sod", "pdstent")]
+
+# Summary of candidate predictors
+summary(subset_recoded_pancreatitis)
+
+# Check normal distribution of numerical variable
+hist(pancreatitis$age)
+qqnorm(pancreatitis$age, pch = 1, frame = FALSE)
+qqline(pancreatitis$age, col = "green", lwd = 1)
+
+#Check linear association between age and outcome (is this relevant for a binary outcome?)
+plot(recoded_pancreatitis$outcome, recoded_pancreatitis$age)
+
+```
+# Logistic Regression model & Backward stepwise regression
+```{r}
+# Backward regression
+
+install.packages("MASS")
+library(MASS)
+library(rms)
+
+model_p1 <-  glm(outcome ~ rx + age + gender + amp +
+                   pep + train+ chole + difcan + recpanc + sod+ pdstent,
+                 family = binomial, data = pancreatitis)
+model_p1
+
+model_rms_p1 <- lrm(data = pancreatitis, outcome ~ rx + age + gender + amp +
+                      pep + train+ chole + difcan + recpanc + sod+ pdstent,
+                    x = TRUE, y = TRUE)
+model_rms_p1
+
+step.model <- stepAIC(model_p1, direction = "backward", 
+                      trace = FALSE)
+summary(step.model)
+
+```
+
+
+# LASSO
+```{r}
+library(glmnet)
+x <- data.matrix(pancreatitis[,c('rx', 'age', 'gender' ,'amp',
+                      'pep', 'train', 'chole' ,'difcan' ,'recpanc' , 'sod', 'pdstent')])
+y <- pancreatitis$outcome
+lasso_model <- cv.glmnet(x,y, alpha = 1)
+best_lambda <- lasso_model$lambda.min
+best_lambda
+plot(lasso_model)
+coef(lasso_model)
+best_model <- glmnet(x, y, alpha = 1, lambda = best_lambda) ## the best lambda is really small and therefore does not lead to the exclusion of variables
+coef(best_model)
+
+best_model <- glmnet(x, y, alpha = 1, lambda = 0.005)
+coef(best_model)
+
+best_model <- glmnet(x, y, alpha = 1, lambda = 0.01)
+coef(best_model)
+```
+
+# Validation 
+```{r}
+model_pf <-  glm(outcome ~ rx + age +  amp +
+                   pep + train+ chole + difcan + recpanc + sod,
+                 family = binomial, data = pancreatitis)
+
+model_pf
+
+model_rms_pf <- lrm(data = pancreatitis, outcome ~ rx + age +  amp +
+                      pep + train+ chole + difcan  + sod,
+                    x = TRUE, y = TRUE)
+model_rms_pf
+
+validation_rms <- validate(model_rms_pf, method= "boot", B=500)
+validation_rms
+
+validation_rms_stepwise <- validate(model_rms_p1, method = "boot", B=500, bw = TRUE, rule = "p", sls = 0.05)
+validation_rms_stepwise
+
+## Just checking whether recoding matters 
+model_rms_pf2 <- lrm(data = recoded_pancreatitis, outcome ~ rx + age +  amp +
+                      pep + train+ chole + difcan  + sod,
+                    x = TRUE, y = TRUE)
+model_rms_pf2
+
+validation_rms2 <- validate(model_rms_pf2, method= "boot", B=500)
+validation_rms2
+
+plot(validation_rms, B=500)
+
+# C statistic
+cstatapp <- 0.5*(validation_rms_stepwise[1,]+1)
+cstatapp
+
+library(rms)
+
+# Calibration of the model
+cal <- calibrate(model_rms_pf, B = 500)
+plot(cal)
+```
+
+

@@ -1,0 +1,62 @@
+---
+title: "R Markdown report that integrates text and R analysis results"
+author: "You can list all the authors here"
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
+bibliography: references.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Date: `r Sys.Date()`.
+
+# Background
+## Background
+### Background
+
+There are many online references available for R Markdown. One of the books that can be bought but is also freely available on the web is the R Markdown Cookbook by Yihui Xie et al. You can find it here: <https://bookdown.org/yihui/rmarkdown-cookbook/>  
+The markdown language ignores 'enter'. To start a new line, hit space twice (that's what I did just after the link to the book). Plain text could be placed here to introduce the report that you're making. For this tutorial, we will focus on the results section, as this shows best the integration between R code and text. This doesn't mean your course assignment should look like this! It's just a collection of stuff that you can do in R Markdown. To start a new paragraph, using enter works.
+
+Text can easily be made **bold**, *italic*, or made superscript^2^ or subscript~0~. When you explicitly want to refer to R code but without actually invoking R you can use `mean()`. If you'd like to throw some maths into the mix, you can write simple expressions between dollar-signs inline as $\sum_{i=1}^{n}x_i$, or where between paragraphs where they are easier tor read: $$\sum_{i=1}^{n}x_i$$ As you can see, this is just a simple formula, but expand as you like! But let's not digress, you're unlikely to use that functionality for the assignment. What you do need for the assignment, are results from your analyses, and for that, we need data!
+
+```{r include=FALSE}
+d <- read.csv("chronic_pain.csv", header = TRUE, sep = ";")
+```
+
+## Results
+
+The data are read from a comma-separated values file (.csv file) created from an SPSS-file that contains the raw data. The data are a subset of a large cohort from the Maastricht UMC+. [@Brouwer2020-ic] These data will be used to perform some simple statistical analyses, the results of which will be integrated in this report. For some reports, showing bits and pieces of raw data can be useful, which is easily done with R Markdown. For instance, let's present the first 5 rows of data.
+
+```{r, echo = FALSE, comment = ""}
+head(d, 5, row.names = FALSE)
+```
+
+This may be useful in some situations, but it would require knowledge of column names and hence, some sort of a codebook. In your average manuscript of a clinical study, descriptive statistics are produced, to summarize the data used for the analysis. Let's do just that.
+
+### Descriptive statistics
+
+The cohort consisted of `r length(d$ID)` chronic pain patients. Of all patients, `r sum(d$Sex == 1, na.rm = TRUE)` (`r round(sum(d$Sex == 1, na.rm = TRUE)/length(d$ID)*100, 1)`%) were male, with an average age (standard deviation) of `r round(mean(d$Age, na.rm = TRUE), 2)` (`r round(sd(d$Age, na.rm = TRUE), 2)`). In case we had many more characteristics, a baseline table would be a better option:
+
+| Characteristic |                                           Total cohort                                            |
+|----------------|:-------------------------------------------------------------------------------------------------:|
+| Age (years)    |          `r round(mean(d$Age, na.rm = TRUE), 2)` (`r round(sd(d$Age, na.rm = TRUE), 2)`)          |
+| Sex (male)     | `r sum(d$Sex == 1, na.rm = TRUE)` (`r round(sum(d$Sex == 1, na.rm = TRUE)/length(d$ID)*100, 1)`%) |
+
+: Baseline characteristics
+
+Say we were most interested in a simple association between complaints of anxiety and depression in these patients. We could compute the correlation by simply typing `r round(cor.test(d$Hadssc_a, d$Hadssc_d)$estimate, 2)` with its associated p-value of *p*=`r round(cor.test(d$Hadssc_a, d$Hadssc_d)$p.value, 3)`. However, this is just a measure of the strength of the linear relation between these two variables. Hence, this may obscure a more interesting association. What I **should** have started with, is some simple visualization. To get a better impression of the association between two continuous variables, a scatterplot in the report would benefit the reader. Figure 1 shows a scatterplot of anxiety and depression scores in chronic pain patients.
+
+```{r, echo = FALSE, fig.cap="Scatter of anxiety and depression scores"}
+plot(jitter(d$Hadssc_a), jitter(d$Hadssc_d),
+     xlab = "HADS Anxiety",
+     ylab = "HADS Depression", col =  "red", cex = .6)
+abline(lm(d$Hadssc_d ~ d$Hadssc_a), lty = 2, lwd = 2)
+```
+
+That concludes the tutorial on how to work with R Markdown! For your group assignment, make sure to integrate R into your R Markdown file, so that everything in the abstract that is computed  is automatically updated in case something changes to the data file.
+
+## References
