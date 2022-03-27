@@ -201,6 +201,9 @@ calx <- calibrate(model_rms.rcs_pf, B = 200)
 plot(calx)
 
 # Frequency table divided by pep and nopep
+## Split data based on pep/nopep
+pancreatitis_nopep <- pancreatitis[pancreatitis$pep == "0_no", ] # Selecting the no pep individuals
+pancreatitis_pep <- pancreatitis[pancreatitis$pep == "1_yes", ] # Selecting the pep individuals
 
 ## Adding means and frequencies to variables
 Age_nopep <- round(mean(pancreatitis_nopep$age), 2)
