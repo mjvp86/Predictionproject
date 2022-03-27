@@ -126,17 +126,17 @@ class(pancreatitis$age) = "integer"
 table.age.pancreatitis <- tabyl(pancreatitis, age, outcome, digits = 0)
 table.age.pancreatitis
 
-# transforming that table into a dataframe
-age.pancreatitis.df <- as.data.frame(table.age.pancreatitis)
-View(age.pancreatitis.df)
-
+#
 # adding columns for total and incidence rate
 df.total <- age.pancreatitis.df$`0`+age.pancreatitis.df$`1`
 df.percentage <- age.pancreatitis.df$`1` / df.total
 age.pancreatitis.df$total <- df.total
 age.pancreatitis.df$incidence <- df.percentage
 
-# plotting incidence x age, with n for frequency of age
+# plotting incidence x age, with n for frequency  transforming that table into a dataframe
+age.pancreatitis.df <- as.data.frame(table.age.pancreatitis)
+View(age.pancreatitis.df)
+of age
 age.outcome.plot <- ggplot(age.pancreatitis.df, 
                            aes(x = age, 
                                y = incidence,
@@ -148,7 +148,7 @@ age.outcome.plot # we see a nonlinear relationship with several 'knots'
 kx <- 5 ## easier to calculate, fill knots here (min. 3, max 16)
 
 model.kx <- lrm(data = pancreatitis, outcome~rcs(age,kx) + rx + amp +
-                  pep + train + chole + difcan + sod,
+                  pep + train + chole + difcan + sod +acinar,
                 x = TRUE, y = TRUE)
 model.kx
 
@@ -159,9 +159,9 @@ p.kx <- predict(model.kx, type = "fitted")
 ROC.kx <- roc(pancreatitis$outcome, p.kx, ci = TRUE)
 
 ROC.kx 
-## k=3 -> AUC = 0.7278 CI 0.6925 - 0.7631, equal to non-rcs model
-## k=4 -> AUC = 0.7307 CI 0.6953 - 0.7661
-## k=5 -> AUC = 0.7321 CI 0.6962 - 0.7680, better than non-rcs model
+## k=3 -> AUC = 0.7321 CI 0.6966-0.7675, equal to non-rcs model
+## k=4 -> AUC = 0.7353 95% CI: 0.6999-0.7708
+## k=5 -> AUC = 0.7343 95% CI: 0.6982-0.7703 NOT REALLY DIFFERENT.
 
 # AUC keeps getting better with more knots, but!
 # literature/'rule of thumb' is to use max 5 knots, depending on sample size
@@ -171,8 +171,9 @@ ROC.kx
 
 # altering the final model, adding 5 knots for age
 
+
 model_rms.rcs_pf <- lrm(data = pancreatitis, outcome ~ rx + rcs(age,5) +  amp +
-                      pep + train+ chole + difcan  + sod,
+                      pep + train+ acinar + difcan  + sod,
                     x = TRUE, y = TRUE)
 model_rms.rcs_pf
                                 
