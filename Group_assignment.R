@@ -205,27 +205,28 @@ plot(calx)
 pancreatitis_nopep <- pancreatitis[pancreatitis$pep == "0_no", ] # Selecting the no pep individuals
 pancreatitis_pep <- pancreatitis[pancreatitis$pep == "1_yes", ] # Selecting the pep individuals
 
-## Adding means and frequencies to variables 
+## Adding means percentages to the variables 
 Age_nopep <- round(mean(pancreatitis_nopep$age), 2)
 Age_pep <- round(mean(pancreatitis_pep$age), 2)
-gender_pep <- sum(pancreatitis_pep$gender == "1_female")
-gender_nopep <- sum(pancreatitis_nopep$gender == "1_female")
-rx_pep <- sum(pancreatitis_pep$rx == "1_indomethacin")
-rx_nopep <- sum(pancreatitis_nopep$rx == "1_indomethacin")
-amp_pep <- sum(pancreatitis_pep$amp == "1_yes")
-amp_nopep <- sum(pancreatitis_nopep$amp == "1_yes")
-train_pep <- sum(pancreatitis_pep$train == "1_yes")
-train_nopep <- sum(pancreatitis_nopep$train == "1_yes")
-acinar_pep <- sum(pancreatitis_pep$acinar == "1_yes")
-acinar_nopep <- sum(pancreatitis_nopep$acinar == "1_yes")
-difcan_pep <- sum(pancreatitis_pep$difcan == "1_yes")
-difcan_nopep <- sum(pancreatitis_nopep$difcan == "1_yes")
-sod_pep <- sum(pancreatitis_pep$sod == "1_yes")
-sod_nopep <- sum(pancreatitis_nopep$sod == "1_yes")
+gender_pep <- round(sum(pancreatitis_pep$gender == "1_female")/length(pancreatitis_pep$gender) *100 ,2)
+gender_nopep <- round(sum(pancreatitis_nopep$gender == "1_female")/length(pancreatitis_nopep$gender) *100 ,2)
+rx_pep <- round(sum(pancreatitis_pep$rx == "1_indomethacin")/length(pancreatitis_pep$rx) *100 ,2)
+rx_nopep <- round(sum(pancreatitis_nopep$rx == "1_indomethacin")/length(pancreatitis_nopep$rx) *100 ,2)
+amp_pep <- round(sum(pancreatitis_pep$amp == "1_yes")/length(pancreatitis_pep$amp) *100 ,2)
+amp_nopep <- round(sum(pancreatitis_nopep$amp == "1_yes")/length(pancreatitis_nopep$amp) *100 ,2)
+train_pep <- round(sum(pancreatitis_pep$train == "1_yes")/length(pancreatitis_pep$train) *100 ,2)
+train_nopep <- round(sum(pancreatitis_nopep$train == "1_yes")/length(pancreatitis_nopep$train) *100 ,2)
+acinar_pep <- round(sum(pancreatitis_pep$acinar == "1_yes")/length(pancreatitis_pep$acinar) *100 ,2)
+acinar_nopep <- round(sum(pancreatitis_nopep$acinar == "1_yes")/length(pancreatitis_nopep$acinar) *100 ,2)
+difcan_pep <- round(sum(pancreatitis_pep$difcan == "1_yes")/length(pancreatitis_pep$difcan) *100 ,2)
+difcan_nopep <- round(sum(pancreatitis_nopep$difcan == "1_yes")/length(pancreatitis_nopep$difcan) *100 ,2)
+sod_pep <- round(sum(pancreatitis_pep$sod == "1_yes")/length(pancreatitis_pep$sod) *100 ,2)
+sod_nopep <- round(sum(pancreatitis_nopep$sod == "1_yes")/length(pancreatitis_nopep$sod) *100 ,2)
+
 
 # Creates table template and defining names
 table = matrix(NA, nrow = 8, ncol = 2)
-colnames(table) = c("Pep", "noPep")
+colnames(table) = c("Pep (mean/%)", "noPep (mean/%)")
 rownames(table) = c("age", "female", "Indomethacin", "amp", "train", "acinar", "difcan", "sod")
 
 # Assign the variables to the table
@@ -249,4 +250,4 @@ table[8,2] = sod_nopep
 table
 
 library(knitr) # to make the table more aesthetic and add a caption
-kable(table, "pipe", caption = "Table 1: Characteristics of the population")
+kable(table, "pipe", caption = "Table 1: Characteristics of the population") 
