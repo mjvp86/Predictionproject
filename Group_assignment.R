@@ -174,7 +174,7 @@ ROC.kx
 
 model_rms.rcs_pf <- lrm(data = pancreatitis, outcome ~ rx + rcs(age,5) +  amp +
                       pep + train+ acinar + difcan  + sod,
-                    x = TRUE, y = TRUE)
+                    x = TRUE, y = TRUE) 
 model_rms.rcs_pf
                                 
 ## ROC curve
@@ -186,8 +186,11 @@ ROCx
 plot(ROCx)
 
 # Validation with bootstrapping = 200
+
 validation_rms.rcs <- validate(model_rms.rcs_pf, method= "boot", B=200)
 validation_rms.rcs
+0.5 * (validation_rms.rcs[1, ] + 1)
+
 
 plot(validation_rms.rcs, B=200)
 
@@ -195,4 +198,4 @@ library(rms)
 
 # Calibration of the model
 calx <- calibrate(model_rms.rcs_pf, B = 200)
-plot(calx)                                                                   
+plot(calx)
