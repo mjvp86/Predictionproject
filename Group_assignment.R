@@ -147,8 +147,8 @@ age.outcome.plot # we see a nonlinear relationship with several 'knots'
 
 kx <- 5 ## easier to calculate, fill knots here (min. 3, max 16)
 
-model.kx <- lrm(data = pancreatitis, outcome~rcs(age,kx) + rx + amp +
-                  pep + train + chole + difcan + sod +acinar,
+model.kx <- lrm(data = pancreatitis, outcome~rcs(age,kx) + rx + acinar + amp +
+                  pep + train+ difcan + sod,
                 x = TRUE, y = TRUE)
 model.kx
 
@@ -159,9 +159,9 @@ p.kx <- predict(model.kx, type = "fitted")
 ROC.kx <- roc(pancreatitis$outcome, p.kx, ci = TRUE)
 
 ROC.kx 
-## k=3 -> AUC = 0.7321 CI 0.6966-0.7675, equal to non-rcs model
-## k=4 -> AUC = 0.7353 95% CI: 0.6999-0.7708
-## k=5 -> AUC = 0.7343 95% CI: 0.6982-0.7703 NOT REALLY DIFFERENT.
+## k=3 -> AUC = 0.7301 95% CI: 0.6944-0.7658 , equal to non-rcs model
+## k=4 -> AUC = 0.732595% CI: 0.6969-0.7681
+## k=5 -> 0.7331 95% CI: 0.6969-0.7693 use this. 
 
 # AUC keeps getting better with more knots, but!
 # literature/'rule of thumb' is to use max 5 knots, depending on sample size
