@@ -250,4 +250,4 @@ table[8,2] = sod_nopep
 table
 
 library(knitr) # to make the table more aesthetic and add a caption
-kable(table, "pipe", caption = "Table 1: Characteristics of the population")
+kable(table, "pipe", caption = "Table 1: Characteristics of the population") 
