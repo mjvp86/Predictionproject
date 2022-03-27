@@ -205,7 +205,7 @@ plot(calx)
 pancreatitis_nopep <- pancreatitis[pancreatitis$pep == "0_no", ] # Selecting the no pep individuals
 pancreatitis_pep <- pancreatitis[pancreatitis$pep == "1_yes", ] # Selecting the pep individuals
 
-## Adding means and frequencies to variables
+## Adding means and frequencies to variables 
 Age_nopep <- round(mean(pancreatitis_nopep$age), 2)
 Age_pep <- round(mean(pancreatitis_pep$age), 2)
 gender_pep <- sum(pancreatitis_pep$gender == "1_female")
