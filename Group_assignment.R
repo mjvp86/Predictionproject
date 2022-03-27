@@ -1,64 +1,79 @@
-#importing the data set
-dat<- read.csv("pancreatitis.csv")
 
 ## Install several packages
 source("Functions.R")
-list.of.packages <- c("haven", "dplyr", "reshape","reshape2", "magrittr", "httr","kableExtra", "ggplot2", "GGally", "epiDisplay") 
+list.of.packages <- c("haven", "dplyr", "reshape","reshape2", "magrittr", "httr","kableExtra", "ggplot2", "GGally", "epiDisplay", "rms", "rmda","glmnet") 
 installRequiredPackages(list.of.packages)
 
 ## Reproducible way to import dataset 
 pathToData <- '.' #this means "the same folder as where my markdown script is"
-pancreatitis <- read.csv( file.path(pathToData,'pancreatitis.csv') )
+pancreatitis <- read.csv( 'pancreatitis.csv')
 summary(pancreatitis)
+#recoding for despcriptive 
+recoded_pancreatitis <- dplyr::mutate(pancreatitis,
+                                      site = as.factor(site),
+                                      age = as.numeric(age),
+                                      risk = as.numeric(risk),
+                                      gender = as.factor(gender),
+                                      outcome = as.factor(outcome),
+                                      sod = as.factor(sod),
+                                      pep = as.factor(pep),
+                                      recpanc = as.factor(recpanc) ,
+                                      psphinc = as.factor(psphinc),
+                                      precut = as.factor(precut),
+                                      difcan = as.factor(difcan), 
+                                      pneudil = as.factor(pneudil),
+                                      amp = as.factor(amp),
+                                      paninj = as.factor(paninj),
+                                      acinar = as.factor(acinar),
+                                      brush = as.factor(brush),
+                                      asa81 = as.factor(asa81),
+                                      asa325 = as.factor(asa325),
+                                      asa = as.factor(asa),
+                                      prophystent = as.factor(prophystent), 
+                                      therastent = as.factor(therastent),  
+                                      pdstent = as.factor(pdstent),       
+                                      sodsom = as.factor(sodsom),
+                                      bsphinc = as.factor(bsphinc),
+                                      bstent = as.factor(bstent), 
+                                      chole = as.factor(chole),
+                                      pbmal = as.factor(pbmal),
+                                      train = as.factor(train), 
+                                      status = as.factor(status),
+                                      type = as.factor(type),
+                                      rx = as.factor(rx),
+                                      bleed = as.factor(bleed))
+summary (recoded_pancreatitis)
+
 
 # Model 1: with all chosen variables
-model_p1 <-  glm(outcome ~ rx + age + gender + amp +
-                   pep + train+ chole + difcan + recpanc + sod+ pdstent,
-                 family = binomial, data = pancreatitis)
-model_p1
 
-model_rms_p1 <- lrm(data = pancreatitis, outcome ~ rx + age + gender + amp +
-                      pep + train+ chole + difcan + recpanc + sod+ pdstent,
+model_rms_p1 <- lrm(data = pancreatitis, outcome ~ rx + age + acinar + amp +
+                      pep + train+ chole + difcan + recpanc + sod+ therastent,
                     x = TRUE, y = TRUE)
 
 model_rms_p1
 
-# Model 2 pdstent = excluded
-model_p2 <-  glm(outcome ~ rx + age + gender + amp +
-                   pep + train+ chole + difcan + recpanc + sod,
-                 family = binomial, data = pancreatitis)
-model_p2
+# Model 2 recpanc = excluded
 
-model_rms_p2 <- lrm(data = pancreatitis, outcome ~ rx + age + gender + amp +
-                      pep + train+ chole + difcan + sod,
-                    x = TRUE, y = TRUE)
+model_rms_p2 <- lrm(data = pancreatitis, outcome ~ rx + age + acinar + amp +
+                      pep + train+ chole + difcan +  sod+ therastent,
+                    x = TRUE, y = TRUE) 
 
 model_rms_p2
 
-# Model 3 recpanc = excluded
-model_p3 <-  glm(outcome ~ rx + age + gender + amp +
-                   pep + train+ chole + difcan +  sod,
-                 family = binomial, data = pancreatitis)
-model_p3
-
-model_rms_p3 <- lrm(data = pancreatitis, outcome ~ rx + age + gender + amp +
+# Model 3 therastent = excluded
+model_rms_p3 <- lrm(data = pancreatitis, outcome ~ rx + age + acinar + amp +
                       pep + train+ chole + difcan +  sod,
-                    x = TRUE, y = TRUE)
+                    x = TRUE, y = TRUE) 
 
 model_rms_p3
 
 # Final model, gender = excluded
-model_pf <-  glm(outcome ~ rx + age +  amp +
-                   pep + train+ chole + difcan + recpanc + sod,
-                 family = binomial, data = pancreatitis)
 
-model_pf
-
-model_rms_pf <- lrm(data = pancreatitis, outcome ~ rx + age +  amp +
-                      pep + train+ chole + difcan  + sod,
-                    x = TRUE, y = TRUE)
+model_rms_pf <- lrm(data = pancreatitis, outcome ~ rx + age + acinar + amp +
+                      pep + train+ chole + difcan +  sod,
+                    x = TRUE, y = TRUE) 
 model_rms_pf
-
 ## ROC curve
 library(pROC) # library for ROC curve
 p <- predict(model_rms_pf, type = "fitted") # prediction factor
