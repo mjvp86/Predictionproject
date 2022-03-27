@@ -199,3 +199,51 @@ library(rms)
 # Calibration of the model
 calx <- calibrate(model_rms.rcs_pf, B = 200)
 plot(calx)
+
+# Frequency table divided by pep and nopep
+
+## Adding means and frequencies to variables
+Age_nopep <- round(mean(pancreatitis_nopep$age), 2)
+Age_pep <- round(mean(pancreatitis_pep$age), 2)
+gender_pep <- sum(pancreatitis_pep$gender == "1_female")
+gender_nopep <- sum(pancreatitis_nopep$gender == "1_female")
+rx_pep <- sum(pancreatitis_pep$rx == "1_indomethacin")
+rx_nopep <- sum(pancreatitis_nopep$rx == "1_indomethacin")
+amp_pep <- sum(pancreatitis_pep$amp == "1_yes")
+amp_nopep <- sum(pancreatitis_nopep$amp == "1_yes")
+train_pep <- sum(pancreatitis_pep$train == "1_yes")
+train_nopep <- sum(pancreatitis_nopep$train == "1_yes")
+acinar_pep <- sum(pancreatitis_pep$acinar == "1_yes")
+acinar_nopep <- sum(pancreatitis_nopep$acinar == "1_yes")
+difcan_pep <- sum(pancreatitis_pep$difcan == "1_yes")
+difcan_nopep <- sum(pancreatitis_nopep$difcan == "1_yes")
+sod_pep <- sum(pancreatitis_pep$sod == "1_yes")
+sod_nopep <- sum(pancreatitis_nopep$sod == "1_yes")
+
+# Creates table template and defining names
+table = matrix(NA, nrow = 8, ncol = 2)
+colnames(table) = c("Pep", "noPep")
+rownames(table) = c("age", "female", "Indomethacin", "amp", "train", "acinar", "difcan", "sod")
+
+# Assign the variables to the table
+table[1,1] = Age_pep
+table[1,2] = Age_nopep
+table[2,1] = gender_pep
+table[2,2] = gender_nopep
+table[3,1] = rx_pep
+table[3,2] = rx_nopep
+table[4,1] = amp_pep
+table[4,2] = amp_nopep
+table[5,1] = train_pep
+table[5,2] = train_nopep
+table[6,1] = acinar_pep
+table[6,2] = acinar_nopep
+table[7,1] = difcan_pep
+table[7,2] = difcan_nopep
+table[8,1] = sod_pep
+table[8,2] = sod_nopep
+
+table
+
+library(knitr) # to make the table more aesthetic and add a caption
+kable(table, "pipe", caption = "Table 1: Characteristics of the population")
