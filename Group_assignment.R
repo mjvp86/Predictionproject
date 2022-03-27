@@ -43,20 +43,12 @@ recoded_pancreatitis <- dplyr::mutate(pancreatitis,
                                       rx = as.factor(rx),
                                       bleed = as.factor(bleed))
 summary (recoded_pancreatitis)
-<<<<<<< HEAD
 sd(recoded_pancreatitis$age)
-=======
-
->>>>>>> aa2b37d7cee0923691200a5d83673b21c6533213
 
 # Model 1: with all chosen variables
 
 model_rms_p1 <- lrm(data = pancreatitis, outcome ~ rx + age + acinar + amp +
-<<<<<<< HEAD
                       pep + train+ gender + difcan + recpanc + sod+ therastent,
-=======
-                      pep + train+ chole + difcan + recpanc + sod+ therastent,
->>>>>>> aa2b37d7cee0923691200a5d83673b21c6533213
                     x = TRUE, y = TRUE)
 
 model_rms_p1
@@ -64,7 +56,6 @@ model_rms_p1
 # Model 2 recpanc = excluded
 
 model_rms_p2 <- lrm(data = pancreatitis, outcome ~ rx + age + acinar + amp +
-<<<<<<< HEAD
                       pep + train+ gender + difcan + sod+ therastent,
                     x = TRUE, y = TRUE)
 
@@ -90,26 +81,10 @@ model_rms_p4
 model_rms_pf <- lrm(data = pancreatitis, outcome ~ rx + age + acinar + amp +
                       pep + train+ difcan + sod,
                     x = TRUE, y = TRUE)
-=======
-                      pep + train+ chole + difcan +  sod+ therastent,
-                    x = TRUE, y = TRUE) 
-
-model_rms_p2
-
-# Model 3 therastent = excluded
-model_rms_p3 <- lrm(data = pancreatitis, outcome ~ rx + age + acinar + amp +
-                      pep + train+ chole + difcan +  sod,
-                    x = TRUE, y = TRUE) 
-
-model_rms_p3
-
-# Final model, gender = excluded
-
-model_rms_pf <- lrm(data = pancreatitis, outcome ~ rx + age + acinar + amp +
-                      pep + train+ chole + difcan +  sod,
-                    x = TRUE, y = TRUE) 
->>>>>>> aa2b37d7cee0923691200a5d83673b21c6533213
+                  
 model_rms_pf
+
+
 ## ROC curve
 library(pROC) # library for ROC curve
 p <- predict(model_rms_pf, type = "fitted") # prediction factor
