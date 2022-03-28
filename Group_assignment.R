@@ -251,3 +251,12 @@ table
 
 library(knitr) # to make the table more aesthetic and add a caption
 kable(table, "pipe", caption = "Table 1: Characteristics of the population") 
+
+install.packages ("sjlabelled")
+library(sjPlot)
+library(sjmisc)
+library(sjlabelled)
+tab_model(model_rms.rcs_pf)
+
+tab_model(model_rms.rcs_pf, transform = NULL, auto.label = FALSE)
+
