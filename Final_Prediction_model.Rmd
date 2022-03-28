@@ -2,7 +2,9 @@
 title: "Final_Prediction_model"
 author: "Tom Kugener"
 date: "3/28/2022"
-output: html_document
+output:
+  word_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -13,6 +15,7 @@ knitr::opts_chunk$set(echo = TRUE, results = 'hide', warning = FALSE, fig.show =
 ## Install and load required functions & import data
 ```{r, warning=FALSE, message=FALSE}
 ## We were not sure about the best way to include our code so we did an R markdown file. It does not include all the code we used but the most relevant steps should included. 
+## LASSO and cubic splines were both performed but not included in the main analysis due to uncertainties or results that did not differ from the main analysis.
 
 # Install and load necessary packages 
 
@@ -116,6 +119,27 @@ summary(step.model)
 
 ## Would keep therastent in th model
 
+```
+
+# LASSO
+```{r}
+library(glmnet)
+x <- data.matrix(pancreatitis[,c('rx', 'age', 'gender' ,'amp',
+                      'pep', 'train', 'chole' ,'difcan' ,'recpanc' , 'sod', 'pdstent')])
+y <- pancreatitis$outcome
+lasso_model <- cv.glmnet(x,y, alpha = 1)
+best_lambda <- lasso_model$lambda.min
+best_lambda
+plot(lasso_model)
+coef(lasso_model)
+best_model <- glmnet(x, y, alpha = 1, lambda = best_lambda) ## the best lambda is really small and therefore does not lead to the exclusion of variables
+coef(best_model)
+
+best_model <- glmnet(x, y, alpha = 1, lambda = 0.005)
+coef(best_model)
+
+best_model <- glmnet(x, y, alpha = 1, lambda = 0.01)
+coef(best_model)
 ```
 ## ROC Curve
 ```{r}
