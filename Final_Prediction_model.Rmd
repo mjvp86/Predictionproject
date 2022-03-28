@@ -6,14 +6,15 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, results = 'hide', warning = FALSE, fig.show = 'hide', message = FALSE)
 ```
 # R Markdown including relevant code
 
 ## Install and load required functions & import data
 ```{r, warning=FALSE, message=FALSE}
-# Install and load necessary packages 
+## We were not sure about the best way to include our code so we did an R markdown file. It does not include all the code we used but the most relevant steps should included. 
 
+# Install and load necessary packages 
 
 source("Functions.R")
 list.of.packages <- c("haven", "dplyr", "reshape","reshape2", "httr","kableExtra", "ggplot2", "GGally", "epiDisplay", "tidyverse", "caret", "leaps", "arsenal", "skimr", "MASS", "rms", "rmda", "glmnet") 
@@ -274,58 +275,51 @@ calx <- calibrate(model_rms.rcs_pf, B = 200)
 plot(calx)
 ```
 
-## Tables 
+## Subgroup Analysis
 ```{r}
-# Frequency table divided by pep and nopep
-## Split data based on pep/nopep
-pancreatitis_nopep <- pancreatitis[pancreatitis$pep == "0_no", ] # Selecting the no pep individuals
-pancreatitis_pep <- pancreatitis[pancreatitis$pep == "1_yes", ] # Selecting the pep individuals
+#data divided by risk
 
-## Adding means percentages to the variables 
-Age_nopep <- round(mean(pancreatitis_nopep$age), 2)
-Age_pep <- round(mean(pancreatitis_pep$age), 2)
-gender_pep <- round(sum(pancreatitis_pep$gender == "1_female")/length(pancreatitis_pep$gender) *100 ,2)
-gender_nopep <- round(sum(pancreatitis_nopep$gender == "1_female")/length(pancreatitis_nopep$gender) *100 ,2)
-rx_pep <- round(sum(pancreatitis_pep$rx == "1_indomethacin")/length(pancreatitis_pep$rx) *100 ,2)
-rx_nopep <- round(sum(pancreatitis_nopep$rx == "1_indomethacin")/length(pancreatitis_nopep$rx) *100 ,2)
-amp_pep <- round(sum(pancreatitis_pep$amp == "1_yes")/length(pancreatitis_pep$amp) *100 ,2)
-amp_nopep <- round(sum(pancreatitis_nopep$amp == "1_yes")/length(pancreatitis_nopep$amp) *100 ,2)
-train_pep <- round(sum(pancreatitis_pep$train == "1_yes")/length(pancreatitis_pep$train) *100 ,2)
-train_nopep <- round(sum(pancreatitis_nopep$train == "1_yes")/length(pancreatitis_nopep$train) *100 ,2)
-acinar_pep <- round(sum(pancreatitis_pep$acinar == "1_yes")/length(pancreatitis_pep$acinar) *100 ,2)
-acinar_nopep <- round(sum(pancreatitis_nopep$acinar == "1_yes")/length(pancreatitis_nopep$acinar) *100 ,2)
-difcan_pep <- round(sum(pancreatitis_pep$difcan == "1_yes")/length(pancreatitis_pep$difcan) *100 ,2)
-difcan_nopep <- round(sum(pancreatitis_nopep$difcan == "1_yes")/length(pancreatitis_nopep$difcan) *100 ,2)
-sod_pep <- round(sum(pancreatitis_pep$sod == "1_yes")/length(pancreatitis_pep$sod) *100 ,2)
-sod_nopep <- round(sum(pancreatitis_nopep$sod == "1_yes")/length(pancreatitis_nopep$sod) *100 ,2)
+df1 <- pancreatitis[pancreatitis$risk <= 2, ]
+df2 <- pancreatitis[pancreatitis$ris > 2, ]
 
 
-# Creates table template and defining names
-table = matrix(NA, nrow = 8, ncol = 2)
-colnames(table) = c("Pep", "noPep")
-rownames(table) = c("age (mean)", "female (%)", "Indomethacin (%)", "amp (%)", "train (%)", "acinar (%)", "difcan (%)", "sod (%)")
+modelrisk1 <- lrm(data = df1, outcome ~ rx + age + acinar + amp +
+                    pep + train+ difcan + sod,
+                  x = TRUE, y = TRUE)
+modelrisk1
 
-# Assign the variables to the table
-table[1,1] = Age_pep
-table[1,2] = Age_nopep
-table[2,1] = gender_pep
-table[2,2] = gender_nopep
-table[3,1] = rx_pep
-table[3,2] = rx_nopep
-table[4,1] = amp_pep
-table[4,2] = amp_nopep
-table[5,1] = train_pep
-table[5,2] = train_nopep
-table[6,1] = acinar_pep
-table[6,2] = acinar_nopep
-table[7,1] = difcan_pep
-table[7,2] = difcan_nopep
-table[8,1] = sod_pep
-table[8,2] = sod_nopep
+modelrisk2 <- lrm(data = df2, outcome ~ rx + age + acinar + amp +
+                    pep + train+ difcan + sod,
+                  x = TRUE, y = TRUE)
+modelrisk2
+## roc for risk 1 group
+library(pROC)
+prisk1 <- predict(modelrisk1, type = "fitted")
 
-table
+ROCrisk1 <- roc(df1$outcome, prisk1, ci = TRUE)
+ROCrisk1
+plot(ROCrisk1)
 
-library(knitr) # to make the table more aesthetic and add a caption
-kable(table, "pipe", caption = "Characteristics of the population") 
+# Validation with bootstrapping = 200
+
+validation_risk1 <- validate(modelrisk1, method= "boot", B=200)
+validation_risk1
+0.5 * (validation_risk1[1, ] + 1)
+
+## roc for risk 2 group
+
+prisk2 <- predict(modelrisk2, type = "fitted")
+
+ROCrisk2 <- roc(df2$outcome, prisk2, ci = TRUE)
+ROCrisk2
+plot(ROCrisk2)
+
+# Validation with bootstrapping = 200
+
+validation_risk2 <- validate(modelrisk2, method= "boot", B=200)
+validation_risk2
+0.5 * (validation_risk2[1, ] + 1)
+
+nrow(df2)
 ```
 
