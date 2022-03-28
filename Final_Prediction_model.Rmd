@@ -1,14 +1,33 @@
+---
+title: "Final_Prediction_model"
+author: "Tom Kugener"
+date: "3/28/2022"
+output: html_document
+---
 
-## Install several packages
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# R Markdown including relevant code
+
+## Install and load required functions & import data
+```{r, warning=FALSE, message=FALSE}
+# Install and load necessary packages 
+
+
 source("Functions.R")
-list.of.packages <- c("haven","janitor", "dplyr", "reshape","reshape2", "magrittr", "httr","kableExtra", "ggplot2", "GGally", "epiDisplay", "rms", "rmda","glmnet") 
+list.of.packages <- c("haven", "dplyr", "reshape","reshape2", "httr","kableExtra", "ggplot2", "GGally", "epiDisplay", "tidyverse", "caret", "leaps", "arsenal", "skimr", "MASS", "rms", "rmda", "glmnet") 
 installRequiredPackages(list.of.packages)
 
-## Reproducible way to import dataset 
-pathToData <- '.' #this means "the same folder as where my markdown script is"
-pancreatitis <- read.csv( 'pancreatitis.csv')
-summary(pancreatitis)
-#recoding for despcriptive 
+
+# Import Data
+pathToData <- '.' 
+pancreatitis <- read.csv( file.path(pathToData,'pancreatitis.csv') )
+```
+
+## Descriptive statistics
+```{r}
+# To allow summary statistics to work, the level of measurement of the variables will be defined
 recoded_pancreatitis <- dplyr::mutate(pancreatitis,
                                       site = as.factor(site),
                                       age = as.numeric(age),
@@ -41,73 +60,116 @@ recoded_pancreatitis <- dplyr::mutate(pancreatitis,
                                       status = as.factor(status),
                                       type = as.factor(type),
                                       rx = as.factor(rx),
-                                      bleed = as.factor(bleed))
-summary (recoded_pancreatitis)
-sd(recoded_pancreatitis$age)
+                                      bleed = as.factor(bleed)      
+                                      )
 
-# Model 1: with all chosen variables
 
+t3 <- tableby(~ ., data = recoded_pancreatitis)
+summary(t3, text = TRUE, title = "Descriptive Statistics on Pancreatitis")
+
+```
+
+## Variable Selection (p-value)
+```{r}
+# Model 1: with all pre-selected variables
 model_rms_p1 <- lrm(data = pancreatitis, outcome ~ rx + age + acinar + amp +
                       pep + train+ gender + difcan + recpanc + sod+ therastent,
                     x = TRUE, y = TRUE)
-
 model_rms_p1
 
 # Model 2 recpanc = excluded
-
 model_rms_p2 <- lrm(data = pancreatitis, outcome ~ rx + age + acinar + amp +
                       pep + train+ gender + difcan + sod+ therastent,
                     x = TRUE, y = TRUE)
-
 model_rms_p2
 
 # Model 3 gender = excluded
 model_rms_p3 <- lrm(data = pancreatitis, outcome ~ rx + age + acinar + amp +
                       pep + train+ difcan + sod+ therastent,
                     x = TRUE, y = TRUE)
-
 model_rms_p3
 
 # Model 4 therastent = excluded
-
 model_rms_p4 <- lrm(data = pancreatitis, outcome ~ rx + age + acinar + amp +
                       pep + train+ difcan + sod,
                     x = TRUE, y = TRUE)
-
 model_rms_p4
 
-# Final model, gender = excluded
-
+# Final model
 model_rms_pf <- lrm(data = pancreatitis, outcome ~ rx + age + acinar + amp +
                       pep + train+ difcan + sod,
                     x = TRUE, y = TRUE)
-                  
 model_rms_pf
+```
 
+### Variable selection (AIC)
+```{r}
+model_p1 <-  glm(outcome ~ rx + age + acinar + amp +
+                      pep + train+ gender + difcan + recpanc + sod+ therastent,
+                 family = binomial, data = pancreatitis)
+model_p1
 
-## ROC curve
+step.model <- stepAIC(model_p1, direction = "backward", 
+                      trace = FALSE)
+summary(step.model)
+
+## Would keep therastent in th model
+
+```
+## ROC Curve
+```{r}
 library(pROC) # library for ROC curve
 p <- predict(model_rms_pf, type = "fitted") # prediction factor
 
 ROC <- roc(pancreatitis$outcome, p, ci = TRUE)
 ROC # for AUC value
 plot(ROC)
+```
 
-# Validation with bootstrapping = 200
+## Bootstrap validation (final model only)
+```{r}
 validation_rms <- validate(model_rms_pf, method= "boot", B=200)
 validation_rms
 
 plot(validation_rms, B=200)
+```
 
-library(rms)
+## Bootstrap validation (including backward regression)
+```{r}
+validation_rms_stepwise <- validate(model_rms_p1, method = "boot", B=200, bw = TRUE, rule = "p", sls = 0.05)
+validation_rms_stepwise
+plot(validation_rms_stepwise, B=200)
 
-# Calibration of the model
-cal <- calibrate(model_rms_pf, B = 200)
+# Same conclusion as initial backward regression
+```
+
+## C statistic 
+```{r}
+# Bootstrap of final model
+cstatapp <- 0.5*(validation_rms[1,]+1)
+cstatapp
+
+# Bootstrap including backward regression
+cstatapp <- 0.5*(validation_rms_stepwise[1,]+1)
+cstatapp
+
+```
+
+## Model calibration
+```{r}
+# For final model
+cal <- calibrate(model_rms_pf, method = "boot", B = 200)
 plot(cal)
 
+# Including backward regression 
+cal <- calibrate(model_rms_p1, bw = TRUE, rule = "p", sls = 0.05, method = "boot", B = 200)
+plot(cal)
 
+```
 
-### using restricted cubic spline for age (a continuous variable) ####
+## Using restricted cubic splines for continuous variable age
+
+```{r }
 
 library(plyr)
 library(dplyr)
@@ -117,23 +179,26 @@ library(rms)
 library(rmda)
 library(arsenal)
 library(pROC)
-
 # changing outcome to integer to get an average later
+
 class(pancreatitis$outcome) = "integer"
 class(pancreatitis$age) = "integer"
 
 # creating age x outcome frequency table
+
 table.age.pancreatitis <- tabyl(pancreatitis, age, outcome, digits = 0)
 table.age.pancreatitis
 
-#
+
 # adding columns for total and incidence rate
+age.pancreatitis.df <- as.data.frame(table.age.pancreatitis)
 df.total <- age.pancreatitis.df$`0`+age.pancreatitis.df$`1`
 df.percentage <- age.pancreatitis.df$`1` / df.total
 age.pancreatitis.df$total <- df.total
 age.pancreatitis.df$incidence <- df.percentage
 
 # plotting incidence x age, with n for frequency  transforming that table into a dataframe
+
 age.pancreatitis.df <- as.data.frame(table.age.pancreatitis)
 View(age.pancreatitis.df)
 age.outcome.plot <- ggplot(age.pancreatitis.df, 
@@ -151,7 +216,10 @@ model.kx <- lrm(data = pancreatitis, outcome~rcs(age,kx) + rx + acinar + amp +
                   pep + train+ difcan + sod,
                 x = TRUE, y = TRUE)
 model.kx
+```
 
+### ROC curves for each model 
+```{r}
 # ROC curves and AUC values for each model
 
 p.kx <- predict(model.kx, type = "fitted")
@@ -176,30 +244,38 @@ model_rms.rcs_pf <- lrm(data = pancreatitis, outcome ~ rx + rcs(age,5) +  amp +
                       pep + train+ acinar + difcan  + sod,
                     x = TRUE, y = TRUE) 
 model_rms.rcs_pf
-                                
-## ROC curve
+```
+
+## ROC curve final model 
+```{r}
 library(pROC) 
 px <- predict(model_rms.rcs_pf, type = "fitted")
 
 ROCx <- roc(pancreatitis$outcome, px, ci = TRUE)
 ROCx
 plot(ROCx)
+```
 
-# Validation with bootstrapping = 200
-
+## Bootstrap Validation
+```{r}
 validation_rms.rcs <- validate(model_rms.rcs_pf, method= "boot", B=200)
 validation_rms.rcs
+
+# C-statistic
 0.5 * (validation_rms.rcs[1, ] + 1)
 
 
 plot(validation_rms.rcs, B=200)
+```
 
-library(rms)
-
-# Calibration of the model
+## Calibration of the model
+```{r}
 calx <- calibrate(model_rms.rcs_pf, B = 200)
 plot(calx)
+```
 
+## Tables 
+```{r}
 # Frequency table divided by pep and nopep
 ## Split data based on pep/nopep
 pancreatitis_nopep <- pancreatitis[pancreatitis$pep == "0_no", ] # Selecting the no pep individuals
@@ -252,11 +328,5 @@ table
 library(knitr) # to make the table more aesthetic and add a caption
 kable(table, "pipe", caption = "Table 1: Characteristics of the population") 
 
-install.packages ("sjlabelled")
-library(sjPlot)
-library(sjmisc)
-library(sjlabelled)
-tab_model(model_rms.rcs_pf)
-
-tab_model(model_rms.rcs_pf, transform = NULL, auto.label = FALSE)
+```
 

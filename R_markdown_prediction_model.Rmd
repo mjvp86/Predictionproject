@@ -12,12 +12,9 @@ knitr::opts_chunk$set(echo = TRUE)
 # Install and load required functions & import data
 ```{r, warning=FALSE, message=FALSE}
 # Install and load necessary packages 
-
-
 source("Functions.R")
-list.of.packages <- c("haven", "dplyr", "reshape","reshape2", "httr","kableExtra", "ggplot2", "GGally", "epiDisplay", "tidyverse", "caret", "leaps", "arsenal", "skimr", "MASS", "rms") 
+list.of.packages <- c("haven", "dplyr", "reshape","reshape2", "httr","kableExtra", "ggplot2", "GGally", "epiDisplay", "tidyverse", "caret", "leaps", "arsenal", "skimr", "MASS", "rms", "rmda", "glmnet") 
 installRequiredPackages(list.of.packages)
-
 
 # Import Data
 pathToData <- '.' 

@@ -1,7 +1,6 @@
-
 ## Install several packages
 source("Functions.R")
-list.of.packages <- c("haven","janitor", "dplyr", "reshape","reshape2", "magrittr", "httr","kableExtra", "ggplot2", "GGally", "epiDisplay", "rms", "rmda","glmnet") 
+list.of.packages <- c("haven", "dplyr", "reshape","reshape2", "magrittr", "httr","kableExtra", "ggplot2", "GGally", "epiDisplay", "rms", "rmda","glmnet") 
 installRequiredPackages(list.of.packages)
 
 ## Reproducible way to import dataset 
@@ -81,7 +80,7 @@ model_rms_p4
 model_rms_pf <- lrm(data = pancreatitis, outcome ~ rx + age + acinar + amp +
                       pep + train+ difcan + sod,
                     x = TRUE, y = TRUE)
-                  
+
 model_rms_pf
 
 
@@ -136,11 +135,11 @@ age.pancreatitis.df$incidence <- df.percentage
 # plotting incidence x age, with n for frequency  transforming that table into a dataframe
 age.pancreatitis.df <- as.data.frame(table.age.pancreatitis)
 View(age.pancreatitis.df)
+of age
 age.outcome.plot <- ggplot(age.pancreatitis.df, 
                            aes(x = age, 
-                               y = df.percentage,
-                               size = df.total)) + geom_count()
-?ggplot
+                               y = incidence,
+                               size = total)) + geom_count()
 age.outcome.plot # we see a nonlinear relationship with several 'knots'
 
 # let's try three rcs models for age, with knots = 3, 4, 5
@@ -173,10 +172,10 @@ ROC.kx
 
 
 model_rms.rcs_pf <- lrm(data = pancreatitis, outcome ~ rx + rcs(age,5) +  amp +
-                      pep + train+ acinar + difcan  + sod,
-                    x = TRUE, y = TRUE) 
+                          pep + train+ acinar + difcan  + sod,
+                        x = TRUE, y = TRUE) 
 model_rms.rcs_pf
-                                
+
 ## ROC curve
 library(pROC) 
 px <- predict(model_rms.rcs_pf, type = "fitted")
@@ -250,13 +249,4 @@ table[8,2] = sod_nopep
 table
 
 library(knitr) # to make the table more aesthetic and add a caption
-kable(table, "pipe", caption = "Table 1: Characteristics of the population") 
-
-install.packages ("sjlabelled")
-library(sjPlot)
-library(sjmisc)
-library(sjlabelled)
-tab_model(model_rms.rcs_pf)
-
-tab_model(model_rms.rcs_pf, transform = NULL, auto.label = FALSE)
-
+kable(table, "pipe", caption = "Table 1: Characteristics of the population")
