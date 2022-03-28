@@ -260,3 +260,48 @@ tab_model(model_rms.rcs_pf)
 
 tab_model(model_rms.rcs_pf, transform = NULL, auto.label = FALSE)
 
+#data divided by risk
+
+df1 <- pancreatitis[pancreatitis$risk <= 2, ]
+df2 <- pancreatitis[pancreatitis$ris > 2, ]
+
+
+modelrisk1 <- lrm(data = df1, outcome ~ rx + rcs(age,5) +  amp +
+                          pep + train+ acinar + difcan  + sod,
+                        x = TRUE, y = TRUE) 
+modelrisk1
+
+modelrisk2 <- lrm(data = df2, outcome ~ rx + rcs(age,5) +  amp +
+                    pep + train+ acinar + difcan  + sod,
+                  x = TRUE, y = TRUE) 
+modelrisk2
+## roc for risk 1 group
+
+prisk1 <- predict(modelrisk1, type = "fitted")
+
+ROCrisk1 <- roc(df1$outcome, prisk1, ci = TRUE)
+ROCrisk1
+plot(ROCrisk1)
+
+# Validation with bootstrapping = 200
+
+validation_risk1 <- validate(modelrisk1, method= "boot", B=200)
+validation_risk1
+0.5 * (validation_risk1[1, ] + 1)
+
+## roc for risk 2 group
+
+prisk2 <- predict(modelrisk2, type = "fitted")
+
+ROCrisk2 <- roc(df2$outcome, prisk2, ci = TRUE)
+ROCrisk2
+plot(ROCrisk2)
+
+# Validation with bootstrapping = 200
+
+validation_risk2 <- validate(modelrisk2, method= "boot", B=200)
+validation_risk2
+0.5 * (validation_risk2[1, ] + 1)
+
+
+
