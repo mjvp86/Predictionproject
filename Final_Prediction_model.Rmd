@@ -302,8 +302,8 @@ sod_nopep <- round(sum(pancreatitis_nopep$sod == "1_yes")/length(pancreatitis_no
 
 # Creates table template and defining names
 table = matrix(NA, nrow = 8, ncol = 2)
-colnames(table) = c("Pep (mean/%)", "noPep (mean/%)")
-rownames(table) = c("age", "female", "Indomethacin", "amp", "train", "acinar", "difcan", "sod")
+colnames(table) = c("Pep", "noPep")
+rownames(table) = c("age (mean)", "female (%)", "Indomethacin (%)", "amp (%)", "train (%)", "acinar (%)", "difcan (%)", "sod (%)")
 
 # Assign the variables to the table
 table[1,1] = Age_pep
@@ -326,7 +326,6 @@ table[8,2] = sod_nopep
 table
 
 library(knitr) # to make the table more aesthetic and add a caption
-kable(table, "pipe", caption = "Table 1: Characteristics of the population") 
-
+kable(table, "pipe", caption = "Characteristics of the population") 
 ```
 
