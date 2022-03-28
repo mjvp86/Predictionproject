@@ -116,6 +116,26 @@ summary(step.model)
 ## Would keep therastent in th model
 
 ```
+# LASSO
+```{r}
+library(glmnet)
+x <- data.matrix(pancreatitis[,c('rx', 'age', 'gender' ,'amp',
+                      'pep', 'train', 'acinar' ,'difcan' ,'recpanc' , 'sod', 'therastent')])
+y <- pancreatitis$outcome
+lasso_model <- cv.glmnet(x,y, alpha = 1)
+best_lambda <- lasso_model$lambda.min
+best_lambda
+plot(lasso_model)
+coef(lasso_model)
+best_model <- glmnet(x, y, alpha = 1, lambda = best_lambda) ## the best lambda is really small and therefore does not lead to the exclusion of variables
+coef(best_model)
+
+best_model <- glmnet(x, y, alpha = 1, lambda = 0.005)
+coef(best_model)
+
+best_model <- glmnet(x, y, alpha = 1, lambda = 0.01)
+coef(best_model)
+```
 ## ROC Curve
 ```{r}
 library(pROC) # library for ROC curve
