@@ -98,6 +98,8 @@ validation_rms <- validate(model_rms_pf, method= "boot", B=200)
 validation_rms
 
 plot(validation_rms, B=200)
+0.5 * (validation_rms[1, ] + 1)
+
 
 library(rms)
 
@@ -256,9 +258,10 @@ install.packages ("sjlabelled")
 library(sjPlot)
 library(sjmisc)
 library(sjlabelled)
-tab_model(model_rms.rcs_pf)
+tab_model(model_rms_pf, 
+          title = "Table 2 Multivariable logistic regression models predicting PEP")
 
-tab_model(model_rms.rcs_pf, transform = NULL, auto.label = FALSE)
+tab_model(model_rms_pf, transform = NULL, auto.label = TRUE)
 
 #data divided by risk
 
@@ -266,14 +269,14 @@ df1 <- pancreatitis[pancreatitis$risk <= 2, ]
 df2 <- pancreatitis[pancreatitis$ris > 2, ]
 
 
-modelrisk1 <- lrm(data = df1, outcome ~ rx + rcs(age,5) +  amp +
-                          pep + train+ acinar + difcan  + sod,
-                        x = TRUE, y = TRUE) 
+modelrisk1 <- lrm(data = df1, outcome ~ rx + age + acinar + amp +
+                    pep + train+ difcan + sod,
+                  x = TRUE, y = TRUE)
 modelrisk1
 
-modelrisk2 <- lrm(data = df2, outcome ~ rx + rcs(age,5) +  amp +
-                    pep + train+ acinar + difcan  + sod,
-                  x = TRUE, y = TRUE) 
+modelrisk2 <- lrm(data = df2, outcome ~ rx + age + acinar + amp +
+                    pep + train+ difcan + sod,
+                  x = TRUE, y = TRUE)
 modelrisk2
 ## roc for risk 1 group
 
@@ -303,5 +306,5 @@ validation_risk2 <- validate(modelrisk2, method= "boot", B=200)
 validation_risk2
 0.5 * (validation_risk2[1, ] + 1)
 
-
+nrow(df2)
 
